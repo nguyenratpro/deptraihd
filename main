@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trang Web Quảng Cáo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+    </style>
+</head>
+<body class="p-6 md:p-12">
+    <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-6 md:p-10">
+        <h1 class="text-3xl md:text-4xl font-bold text-center mb-6 text-gray-800">Quảng Cáo Của Bạn</h1>
+        
+        <p class="text-center text-lg mb-8 text-gray-600">Bạn có muốn quảng cáo nổi tiếng không?</p>
+        
+        <div class="flex justify-center mb-10">
+            <button id="createAdBtn" class="bg-blue-600 text-white font-semibold py-3 px-8 rounded-full shadow-lg hover:bg-blue-700 transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+                Tạo quảng cáo
+            </button>
+        </div>
+        
+        <!-- Ad Creation Form (Modal) -->
+        <div id="adFormModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center p-4">
+            <div class="bg-white rounded-lg p-6 w-full max-w-md shadow-2xl transform scale-105 transition-transform duration-300">
+                <h2 class="text-2xl font-bold text-center mb-4 text-gray-800">Tạo Quảng Cáo Mới</h2>
+                <form id="adForm">
+                    <div class="mb-4">
+                        <label for="adTitle" class="block text-gray-700 font-semibold mb-2">Tiêu đề</label>
+                        <input type="text" id="adTitle" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Tiêu đề quảng cáo..." required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="adDescription" class="block text-gray-700 font-semibold mb-2">Mô tả</label>
+                        <textarea id="adDescription" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" rows="3" placeholder="Mô tả chi tiết về quảng cáo..." required></textarea>
+                    </div>
+                    <div class="mb-6">
+                        <label for="adBudget" class="block text-gray-700 font-semibold mb-2">Ngân sách ($)</label>
+                        <input type="number" id="adBudget" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" value="5" min="5" max="5" required>
+                    </div>
+                    <div class="flex justify-between">
+                        <button type="button" id="closeAdFormBtn" class="bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-lg hover:bg-gray-400 transition duration-300">
+                            Hủy
+                        </button>
+                        <button type="submit" class="bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-300">
+                            Tạo
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold mb-4 text-gray-800">Các Quảng Cáo Hiện Có</h2>
+            <div id="adContainer" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Quảng cáo sẽ được thêm vào đây bằng JavaScript -->
+            </div>
+        </div>
+
+        <div class="bg-gray-100 rounded-lg p-6 shadow-inner">
+            <h2 class="text-2xl font-bold mb-4 text-gray-800">Thống Kê Lượt Click</h2>
+            <p id="totalClicks" class="text-xl font-semibold text-gray-700">Tổng số lượt click: 0</p>
+            <p id="totalEarnings" class="text-xl font-semibold text-gray-700 mt-2">Tổng thu nhập: $0.00</p>
+        </div>
+        
+    </div>
+    
+    <!-- Disclaimer Text -->
+    <div class="mt-8 text-center">
+        <p class="text-xs text-gray-400">Đây chỉ là mô phỏng, không cổ súy cho bất kỳ hành động nào.</p>
+    </div>
+
+    <!-- Message Box -->
+    <div id="messageBox" class="fixed bottom-6 right-6 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg hidden">
+        <p id="messageText"></p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Lấy các phần tử DOM
+            const createAdBtn = document.getElementById('createAdBtn');
+            const adFormModal = document.getElementById('adFormModal');
+            const closeAdFormBtn = document.getElementById('closeAdFormBtn');
+            const adForm = document.getElementById('adForm');
+            const adContainer = document.getElementById('adContainer');
+            const totalClicksEl = document.getElementById('totalClicks');
+            const totalEarningsEl = document.getElementById('totalEarnings');
+            const adBudgetEl = document.getElementById('adBudget');
+            const messageBox = document.getElementById('messageBox');
+            const messageText = document.getElementById('messageText');
+
+            // Khai báo các biến trạng thái
+            let totalClicks = 0;
+            let totalEarnings = 0;
+            let ads = [];
+            let userState = {
+                adsCreated: 0,
+                canUseHigherBudget: false
+            };
+            let lastActiveTimestamp = Date.now();
+
+            // Hàm lưu dữ liệu vào localStorage
+            function saveData() {
+                const data = {
+                    totalClicks,
+                    totalEarnings,
+                    ads,
+                    userState,
+                    lastActiveTimestamp: Date.now()
+                };
+                localStorage.setItem('adWebsiteData', JSON.stringify(data));
+            }
+
+            // Hàm tải dữ liệu từ localStorage
+            function loadData() {
+                const storedData = localStorage.getItem('adWebsiteData');
+                if (storedData) {
+                    const data = JSON.parse(storedData);
+                    totalClicks = data.totalClicks || 0;
+                    totalEarnings = data.totalEarnings || 0;
+                    ads = data.ads || [];
+                    userState = data.userState || { adsCreated: 0, canUseHigherBudget: false };
+                    
+                    // Xử lý các lượt click khi không online
+                    const now = Date.now();
+                    const lastActive = data.lastActiveTimestamp || now;
+                    const elapsedMinutes = Math.floor((now - lastActive) / 60000); // 60000ms = 1 phút
+                    
+                    if (elapsedMinutes > 0) {
+                        for (let i = 0; i < elapsedMinutes; i++) {
+                            simulateClicks();
+                        }
+                        showMessage(`Mô phỏng ${elapsedMinutes} phút hoạt động ngầm.`, true);
+                    }
+
+                    // Render lại giao diện
+                    renderAds();
+                    updateAdStats();
+                    updateAdBudgetOptions();
+                }
+            }
+
+            // Hàm mô phỏng lượt click cho mỗi phút
+            function simulateClicks() {
+                ads.forEach(ad => {
+                    let clickProbability = 0;
+                    if (ad.budget > 5) {
+                        clickProbability = 0.30; // 30% cho ngân sách $20
+                    } else {
+                        clickProbability = 0.055; // 5.5% cho ngân sách $5
+                    }
+
+                    if (Math.random() < clickProbability) {
+                        ad.clicks += 1;
+                        ad.earnings += 0.19;
+                        totalClicks += 1;
+                        totalEarnings += 0.19;
+                    }
+                });
+            }
+
+            // Hàm hiển thị thông báo
+            function showMessage(text, isSuccess = false) {
+                messageText.textContent = text;
+                messageBox.classList.remove('hidden', 'bg-red-500', 'bg-green-500');
+                if (isSuccess) {
+                    messageBox.classList.add('bg-green-500');
+                } else {
+                    messageBox.classList.add('bg-red-500');
+                }
+                setTimeout(() => {
+                    messageBox.classList.add('hidden');
+                }, 3000);
+            }
+
+            // Cập nhật tùy chọn ngân sách dựa trên trạng thái người dùng
+            function updateAdBudgetOptions() {
+                if (userState.canUseHigherBudget) {
+                    adBudgetEl.max = 20;
+                    showMessage("Bạn đã đạt điều kiện để sử dụng ngân sách cao hơn ($20).", true);
+                } else {
+                    adBudgetEl.max = 5;
+                }
+            }
+            
+            // Render danh sách quảng cáo
+            function renderAds() {
+                adContainer.innerHTML = '';
+                ads.forEach(ad => {
+                    const adEl = document.createElement('div');
+                    adEl.className = 'bg-white border border-gray-200 rounded-lg p-4 shadow-md hover:shadow-xl transition-shadow duration-300';
+                    adEl.innerHTML = `
+                        <h3 class="text-xl font-semibold mb-2 text-gray-800">${ad.title}</h3>
+                        <p class="text-gray-600 mb-2">${ad.description}</p>
+                        <div class="text-sm text-gray-500">
+                            <p>Ngân sách: $${ad.budget}</p>
+                            <p>Lượt click: <span class="ad-clicks-${ad.id}">${ad.clicks}</span></p>
+                            <p>Thu nhập: <span class="ad-earnings-${ad.id}">$${ad.earnings.toFixed(2)}</span></p>
+                        </div>
+                    `;
+                    adContainer.appendChild(adEl);
+                });
+            }
+
+            // Cập nhật số liệu thống kê
+            function updateAdStats() {
+                totalClicksEl.textContent = `Tổng số lượt click: ${totalClicks}`;
+                totalEarningsEl.textContent = `Tổng thu nhập: $${totalEarnings.toFixed(2)}`;
+            }
+
+            // Lắng nghe sự kiện click nút Tạo quảng cáo
+            createAdBtn.addEventListener('click', () => {
+                adFormModal.classList.remove('hidden');
+                adFormModal.classList.add('flex');
+                updateAdBudgetOptions();
+            });
+
+            // Lắng nghe sự kiện click nút Hủy
+            closeAdFormBtn.addEventListener('click', () => {
+                adFormModal.classList.add('hidden');
+            });
+
+            // Lắng nghe sự kiện gửi form
+            adForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const title = document.getElementById('adTitle').value;
+                const description = document.getElementById('adDescription').value;
+                const budget = parseFloat(document.getElementById('adBudget').value);
+                
+                if (userState.adsCreated === 0 && budget > 5) {
+                    showMessage("Ngân sách ban đầu chỉ có thể tối đa $5.00.");
+                    return;
+                }
+
+                if (userState.canUseHigherBudget && budget > 20) {
+                    showMessage("Ngân sách tối đa bạn có thể sử dụng là $20.00.");
+                    return;
+                }
+                
+                const newAd = {
+                    id: ads.length + 1,
+                    title,
+                    description,
+                    budget,
+                    clicks: 0,
+                    earnings: 0
+                };
+                ads.push(newAd);
+                
+                userState.adsCreated++;
+                if (userState.adsCreated >= 1) {
+                    userState.canUseHigherBudget = true;
+                }
+                
+                renderAds();
+                updateAdStats();
+                saveData();
+                
+                adForm.reset();
+                adFormModal.classList.add('hidden');
+                showMessage("Quảng cáo đã được tạo thành công!", true);
+            });
+
+            // Mô phỏng lượt click mỗi phút khi trang web đang mở
+            setInterval(() => {
+                simulateClicks();
+                updateAdStats();
+                saveData();
+            }, 60000); // 60000ms = 1 phút
+
+            // Tải dữ liệu khi trang được nạp
+            loadData();
+            
+            // Lưu dữ liệu khi người dùng rời trang
+            window.addEventListener('beforeunload', saveData);
+        });
+    </script>
+</body>
+</html>
