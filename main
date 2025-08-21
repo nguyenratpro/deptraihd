@@ -1,57 +1,36 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DEPTRAI HD - Công Ty Quảng Cáo Hàng Đầu</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Be Vietnam Pro', sans-serif;
-            scroll-behavior: smooth;
-        }
-        .gradient-text {
-            background: linear-gradient(90deg, #4F46E5, #EC4899);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
-        .hero-gradient {
-            background: linear-gradient(135deg, rgba(79, 70, 229, 0.1) 0%, rgba(236, 72, 153, 0.1) 100%);
-        }
-        .service-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-        }
-    </style>
-</head>
-<body class="bg-white text-gray-800">
-    <!-- Header -->
-    <header class="fixed w-full bg-white shadow-sm z-50">
-        <div class="container mx-auto px-6 py-4">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center">
-                    <div class="text-2xl font-bold">
-                        <span class="gradient-text">DEPTRAI HD</span>
-                    </div>
+                <div class="mb-4">
+                    <label for="password" class="block text-gray-700">Mật khẩu:</label>
+                    <input type="password" id="password" class="border border-gray-300 rounded-lg w-full p-2" required>
                 </div>
-                <nav class="hidden md:flex space-x-8">
-                    <a href="#" class="text-gray-700 hover:text-indigo-600 font-medium">Trang chủ</a>
-                    <a href="#about" class="text-gray-700 hover:text-indigo-600 font-medium">Về chúng tôi</a>
-                    <a href="#services" class="text-gray-700 hover:text-indigo-600 font-medium">Dịch vụ</a>
-                    <a href="#portfolio" class="text-gray-700 hover:text-indigo-600 font-medium">Dự án</a>
-                    <a href="#contact" class="text-gray-700 hover:text-indigo-600 font-medium">Liên hệ</a>
-                </nav>
-                <button class="md:hidden focus:outline-none">
-                    <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
-                    </svg>
-                </button>
-            </div>
+                <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-lg">Đăng nhập</button>
+                <button type="button" id="registerButton" class="bg-pink-600 text-white px-4 py-2 rounded-lg ml-2">Đăng ký</button>
+            </form>
         </div>
-    </header>
-
+    </div>
+    <script>
+        // Get modal element
+        const modal = document.getElementById("loginModal");
+        const startButton = document.getElementById("startButton");
+        const closeModal = document.getElementById("closeModal");
+        // Show modal when "Bắt đầu ngay" is clicked
+        startButton.onclick = function() {
+            modal.style.display = "block";
+        }
+        // Close modal when the user clicks on <span> (x)
+        closeModal.onclick = function() {
+            modal.style.display = "none";
+        }
+        // Close modal when the user clicks anywhere outside of the modal
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+        // Handle form submission
+        document.getElementById("authForm").onsubmit = function(event) {
+            event.preventDefault();
+            // Redirect to Google after login
+            window.location.href = "https://www.google.com";
     <!-- Hero Section -->
     <section class="hero-gradient pt-32 pb-20">
         <div class="container mx-auto px-6 flex flex-col md:flex-row items-center">
